@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Document</title>
     <style>
+        
         h1{
             font-size: 2em;
         }
@@ -25,7 +26,7 @@
             display: none;
             font-size: 1.5em;
         }
-
+        
     </style>
 
 </head>
@@ -34,10 +35,8 @@
     <div id='control'>
     <p>Set rows: <input type='text' id='rows' value='10'/></p>
     <p>Set col.s: <input type='text' id='columns' value='10'/></p>
-    <p>Set difficulty: 
-        <input type='radio' name='difficulties' class='tariff' id='easy' value='easy'/>easy
-        <input type='radio' name='difficulties' class='tariff' id='moderate' value='moderate' checked/>moderate
-        <input type='radio' name='difficulties' class='tariff' id='hard' value='hard'/>hard
+    <p>Set difficulty:
+        <input type='range' id="tariff" min="1" max="5" step="any"/>
     </p>
     <button id="newGame">Create Game</button>
     </div>
@@ -58,7 +57,8 @@
         //game variables in
         var rowsIn = document.querySelector('#rows');
         var columnsIn = document.querySelector('#columns');
-        var tariffIn = document.querySelector('.tariff:checked');
+        //var tariffIn = document.querySelector('.tariff:checked');
+        var tarifIn = document.querySelector('#tariff');
         
         var newGameIn = document.querySelector('#newGame'); //the start button
         newGameIn.addEventListener("click", makeGame);
@@ -77,14 +77,14 @@
             //from string to numbers
             var rowsNum = Number(rowsIn.value);
             var columnNum = Number(columnsIn.value);
-            var tariffNum;
-            if(tariffIn==easy){
+            var tariffNum = Number(tarifIn.value)/10;
+/*            if(tariffIn==easy){
                 tariffNum = 0.1;
             } else if(tariffIn==moderate){
                 tariffNum = 0.2;
             } else if(tariffIn==hard){
                 tariffNum = 0.3;
-            }
+            }*/
             
             //random bomb_index
             var bombSet = new Set();
