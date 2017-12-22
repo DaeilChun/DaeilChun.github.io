@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <style>
+        h1{
+            font-size: 2em;
+        }
+        table {
+            border: 2px solid;
+            border-spacing: 0px;
+        }
+        td{
+            border: black 1px solid;
+            width: 20px;
+            height: 20px;
+            background-color: darkgray;
+            text-align: center;
+            line-height: 20px;
+            font-size: 0.7em;
+        }
+        #result{}
+        #result>p{
+            display: none;
+            font-size: 1.5em;
+        }
+
+    </style>
+
+</head>
+<body>
+    <h1>MineSweeper</h1>
+    <div id='control'>
+    <p>Set rows: <input type='text' id='rows' value='10'/></p>
+    <p>Set col.s: <input type='text' id='columns' value='10'/></p>
+    <p>Set difficulty: 
+        <input type='radio' name='difficulties' class='tariff' id='easy' value='easy'/>easy
+        <input type='radio' name='difficulties' class='tariff' id='moderate' value='moderate' checked/>moderate
+        <input type='radio' name='difficulties' class='tariff' id='hard' value='hard'/>hard
+    </p>
+    <button id="newGame">Create Game</button>
+    </div>
+    <table id='minePlain'>
+    </table>
+    <div id="result">
+        <p>Game Over!</p>
+        <p>Cleared All!</p>
+    </div>
+    
+    <script>
+    window.onload=function(){
+        //document variables on
+        var cellIdx; //the main data array for the game
+        var minePlain=document.querySelector("#minePlain"); //the game table linked to the cellIdx.
+        var endMsg=document.querySelectorAll("#result>p");
+        
+        //game variables in
+        var rowsIn = document.querySelector('#rows');
+        var columnsIn = document.querySelector('#columns');
+        var tariffIn = document.querySelector('.tariff:checked');
+        
+        var newGameIn = document.querySelector('#newGame'); //the start button
+        newGameIn.addEventListener("click", makeGame);
+        
+        function makeGame(){
+            //intialize & remove the previous game.
+            endMsg[0].style.display="none";
+            endMsg[1].style.display="none";
+
+            newGameIn.disabled=true;
+
+            while(minePlain.firstChild){
+               minePlain.removeChild(minePlain.firstChild);
+            }
+            
+            //from string to numbers
+            var rowsNum = Number(rowsIn.value);
+            var columnNum = Number(columnsIn.value);
+            var tariffNum;
+            if(tariffIn==easy){
+                tariffNum = 0.1;
+            } else if(tariffIn==moderate){
+                tariffNum = 0.2;
+            } else if(tariffIn==hard){
+                tariffNum = 0.3;
+            }
+            
+            //random bomb_index
+            var bombSet = new Set();
+            var totalCell = rowsNum*columnNum;
+            var totalBomb = totalCell*tariffNum;
+            while(bombSet.size<totalBomb){
+                var bombIdx = parseInt(Math.random()*totalCell, 10);
+                bombSet.add(bombIdx);
+            }
+            
+            
+            //a data cell (and its constructor)
+            var makeCell = function(x){
+                var cell = {
+                    'idx': x,       
+                    'isBomb': false,
+                    'nearbyCells': [], //this is useful to count the following data.
+                    'nearbyBombs' : 0, 
+                    'isOpened': false        
+                  };
+                
+                return cell;
+            };
+            
+            
+            //the array creating and containing all the cells, which correspond to the table on the page
+            cellIdx = new Array();
+            for(var i=0; i<totalCell; i++){
+                //create cells and push them into the array
+                cellIdx.push(makeCell(i));
+            }
+
+            //calculating the nearbycells for each cell
+            //must distingush nine types of cell loci: top/bottom borders, left/right borders, four corners and the rest.
+           for(var i=0; i<totalCell; i++){
+                if(i==0){cellIdx[i].nearbyCells=[(i+1), (i+columnNum), (i+columnNum+1)].filter(inBoundary);}   
+                else if(i==(columnNum-1)){cellIdx[i].nearbyCells=[(i-1), (i+columnNum-1), (i+columnNum)].filter(inBoundary);}
+                else if(i==(totalCell-1)){cellIdx[i].nearbyCells=[(i-columnNum-1), (i-columnNum), (i-1)].filter(inBoundary);}
+                else if(i==(totalCell-columnNum)){cellIdx[i].nearbyCells=[(i-columnNum), (i-columnNum+1), (i+1)].filter(inBoundary);}
+                else if(i<columnNum){cellIdx[i].nearbyCells=[(i-1), (i+1), (i+columnNum-1), (i+columnNum), (i+columnNum+1)].filter(inBoundary);}
+                else if(i>totalCell-columnNum){cellIdx[i].nearbyCells=[(i-columnNum-1), (i-columnNum), (i-columnNum+1), (i-1), (i+1)].filter(inBoundary);}
+                else if(i%columnNum==0){cellIdx[i].nearbyCells=[(i-columnNum), (i-columnNum+1), (i+1), (i+columnNum), (i+columnNum+1)].filter(inBoundary);}
+                else if((i+1)%columnNum==0){cellIdx[i].nearbyCells=[(i-columnNum-1), (i-columnNum), (i-1), (i+columnNum-1), (i+columnNum)].filter(inBoundary);}
+                else {
+                    cellIdx[i].nearbyCells=[(i-columnNum-1), (i-columnNum), (i-columnNum+1), (i-1), (i+1), (i+columnNum-1), (i+columnNum), (i+columnNum+1)].filter(inBoundary);
+                }
+            }                
+            
+            //a filter for nearbycells
+            function inBoundary(value){
+                return (value>-1)&&(value<cellIdx.length);
+            }
+            
+            //count # of nearby bombs of each cell via its own nearbyCells info.
+            for(bomb of bombSet){
+                cellIdx[bomb].isBomb=true;
+                var warnCells=cellIdx[bomb].nearbyCells;
+                for(var i=0; i<warnCells.length; i++){
+                    var warnCell=warnCells[i];
+                    cellIdx[warnCell].nearbyBombs++;
+                }
+            }
+            
+            //just to monitor
+            //console.log(bombSet);
+            //console.log(cellIdx);
+ 
+            //visualize the mine table, and let it corresponds to the cellIdx. 
+            minePlainIn = document.getElementById("#minePlain");
+            var linkId=0;
+            for(var i=0; i<rowsIn.value; i++){
+                var newRow = minePlain.insertRow(i); //why not minePlainIn? check!!! Maybe Ask StackOverflow.
+                for(var j=0; j<columnsIn.value; j++){
+                    var newCell = newRow.insertCell(j);
+                    newCell.id = linkId++; //note, it's stored as charaters, and auto-casting won't be consistent.
+                    newCell.addEventListener('click', function(){checkBomb(this)}); //tricky grammar...
+                }
+            }
+        }
+       
+        function checkBomb(clickedCell){
+            var tdTags=document.querySelectorAll("td");
+            
+            //console.log(tdTags); 
+            
+            var target=clickedCell.id;
+            
+            //neutraize any unnecessary click on the already opened cells.
+            if(cellIdx[target].isOpened){return;}
+            
+            //if(lose case) else (safe case)
+            if(cellIdx[target].isBomb){
+                for(var i=0; i<tdTags.length; i++){
+                    if(cellIdx[i].isBomb){
+                        var bombIcon = document.createElement('img');
+                        bombIcon.src = "bombicon.png";
+                        tdTags[i].append(bombIcon); 
+                    }
+                    if(!cellIdx[i].isOpened){
+                        tdTags[i].style.backgroundColor="white";
+                        if(!cellIdx[i].isBomb && cellIdx[i].nearbyBombs!=0){
+                            tdTags[i].innerText=cellIdx[i].nearbyBombs;
+                        }
+                    }
+                }
+                clickedCell.style.backgroundColor="black";
+                
+                endMsg[0].style.display="block";
+                endMsg[0].style.color="red";
+                newGameIn.disabled=false;
+                newGameIn.innerText="Reset Game";
+                
+           } else {
+                clickedCell.style.backgroundColor="white";
+                cellIdx[target].isOpened=true;
+                scanNearby(tdTags, cellIdx[target].nearbyCells);
+                isFinale();
+           }
+        }
+        
+        function isFinale(){
+            var cntOpen=0;
+            var cntBomb=0;
+            for(allcells of cellIdx){
+                if(allcells.isOpened){
+                    cntOpen++;
+                }
+                if(allcells.isBomb){
+                    cntBomb++;
+                }
+                
+                if((cntOpen+cntBomb)==cellIdx.length){
+                    endMsg[1].style.color="blue";
+                    endMsg[1].style.display="block";
+                    newGameIn.disabled=false;
+                    newGameIn.innerText="Reset Game"
+                }
+            }
+        }
+        
+        function scanNearby(tdNodes, cells){
+            var scanJobs = new Array();
+            for(var i=0; i<cells.length; i++){
+                var target=cells[i];
+                if(!cellIdx[target].isBomb && !cellIdx[target].isOpened){
+                    tdNodes[target].style.backgroundColor="white";
+                    cellIdx[target].isOpened=true;
+                    if(cellIdx[target].nearbyBombs!=0){
+                        tdNodes[target].innerText=cellIdx[target].nearbyBombs;
+                    } else {
+                        scanJobs.push(cellIdx[target].nearbyCells);
+                    }
+                }
+            }
+            runScanJobs(tdNodes, scanJobs);
+        }
+        
+        function runScanJobs(tdNodes, jobsArr){
+            for(var i=0; i<jobsArr.length; i++){
+                scanNearby(tdNodes, jobsArr[i]);
+            }
+        }
+     }   
+    </script>
+</body>
+</html>
