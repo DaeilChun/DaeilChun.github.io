@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0">
     <title>Document</title>
     <style>
         
@@ -22,14 +23,14 @@
             font-size: 0.7em;
         }
         #result{}
-        #result>p{
+        #result>span{
             display: none;
             font-size: 1.5em;
         }
         
-        @media only screen and (max-width: 500px) {
+        @media only screen and (max-width: 767px) {
         h1{
-            font-size: 4em;
+            font-size: 2em;
         }
         table {
             width: 100%;
@@ -45,10 +46,10 @@
             line-height: 40px;
             font-size: 1em;
         }
-        p{font-size: 2em;}
-        #result>p{
+        p{font-size: 1em;}
+        #result>span{
             display: none;
-            font-size: 2.5em;
+            font-size: 1.5em;
         }
         }
     </style>
@@ -64,19 +65,19 @@
     </p>
     <button id="newGame">Create Game</button>
     </div>
+    <span id="result">
+        <span>Game Over!</span>
+        <span>Cleared All!</span>
+    </span>
     <table id='minePlain'>
     </table>
-    <div id="result">
-        <p>Game Over!</p>
-        <p>Cleared All!</p>
-    </div>
     
     <script>
     window.onload=function(){
         //document variables on
         var cellIdx; //the main data array for the game
         var minePlain=document.querySelector("#minePlain"); //the game table linked to the cellIdx.
-        var endMsg=document.querySelectorAll("#result>p");
+        var endMsg=document.querySelectorAll("#result>span");
         
         //game variables in
         var rowsIn = document.querySelector('#rows');
