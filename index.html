@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0">
-    <title>Document</title>
+    <title>Daeil's learning to code</title>
     <style>
         
         h1{
@@ -22,9 +22,9 @@
             line-height: 20px;
             font-size: 0.7em;
         }
-        #result{}
-        #result>span{
-            display: none;
+        .result{
+            /* display: none; */
+            visibility: hidden;
             font-size: 1.5em;
         }
         
@@ -47,8 +47,9 @@
             font-size: 1em;
         }
         p{font-size: 1em;}
-        #result>span{
-            display: none;
+        .result{
+           /*  display: none; */
+            visibility: hidden;
             font-size: 1.5em;
         }
         }
@@ -65,24 +66,21 @@
     </p>
     <button id="newGame">Create Game</button>
     </div>
-    <span id="result">
-        <span>Game Over!</span>
-        <span>Cleared All!</span>
-    </span>
     <table id='minePlain'>
     </table>
+    <div class="result">Game Over!</div>
+    <div class="result">Cleared All!</div>
     
     <script>
     window.onload=function(){
         //document variables on
         var cellIdx; //the main data array for the game
         var minePlain=document.querySelector("#minePlain"); //the game table linked to the cellIdx.
-        var endMsg=document.querySelectorAll("#result>span");
+        var endMsg=document.querySelectorAll(".result");
         
         //game variables in
         var rowsIn = document.querySelector('#rows');
         var columnsIn = document.querySelector('#columns');
-        //var tariffIn = document.querySelector('.tariff:checked');
         var tarifIn = document.querySelector('#tariff');
         
         var newGameIn = document.querySelector('#newGame'); //the start button
@@ -90,8 +88,9 @@
         
         function makeGame(){
             //intialize & remove the previous game.
-            endMsg[0].style.display="none";
-            endMsg[1].style.display="none";
+            endMsg[0].style.visibility="hidden";
+            endMsg[1].style.visibility="hidden";
+            document.querySelector('table').style.opacity="1";
 
             newGameIn.disabled=true;
 
@@ -103,13 +102,6 @@
             var rowsNum = Number(rowsIn.value);
             var columnNum = Number(columnsIn.value);
             var tariffNum = Number(tarifIn.value)/10;
-/*            if(tariffIn==easy){
-                tariffNum = 0.1;
-            } else if(tariffIn==moderate){
-                tariffNum = 0.2;
-            } else if(tariffIn==hard){
-                tariffNum = 0.3;
-            }*/
             
             //random bomb_index
             var bombSet = new Set();
@@ -196,11 +188,12 @@
             //console.log(tdTags); 
             
             var target=clickedCell.id;
+            //alert(clickedCell.parentNode.getBoundingClientRect().top);
             
             //neutraize any unnecessary click on the already opened cells.
             if(cellIdx[target].isOpened){return;}
             
-            //if(lose case) else (safe case)
+            //if(lost) else (safe)
             if(cellIdx[target].isBomb){
                 for(var i=0; i<tdTags.length; i++){
                     if(cellIdx[i].isBomb){
@@ -217,8 +210,18 @@
                 }
                 clickedCell.style.backgroundColor="black";
                 
-                endMsg[0].style.display="block";
-                endMsg[0].style.color="red";
+                //endMsg[0].style.display="block" //to add transition(later), choose visibility
+                endMsg[0].style.visibility="visible";
+                endMsg[0].style.color="black";
+                endMsg[0].style.backgroundColor="pink";
+                document.querySelector('table').style.opacity="0.5";
+                endMsg[0].style.position="absolute";
+                //if to display msg on the cliecked row(or cell), do something like this
+                //endMsg[0].style.top=clickedCell.parentNode.getBoundingClientRect().y+"px";
+                //but now, just show the msg beside the button
+                endMsg[0].style.left=document.querySelector('button').getBoundingClientRect().right+"px";
+                endMsg[0].style.top=document.querySelector('button').getBoundingClientRect().top+"px";
+                
                 newGameIn.disabled=false;
                 newGameIn.innerText="Reset Game";
                 
@@ -242,8 +245,13 @@
                 }
                 
                 if((cntOpen+cntBomb)==cellIdx.length){
-                    endMsg[1].style.color="blue";
-                    endMsg[1].style.display="block";
+                    endMsg[1].style.visibility="visible";
+                    endMsg[1].style.color="black";
+                    endMsg[1].style.backgroundColor="lightblue";
+                    document.querySelector('table').style.opacity="0.5";
+                    endMsg[1].style.position="absolute";
+                    endMsg[1].style.left=document.querySelector('button').getBoundingClientRect().right+"px";
+                    endMsg[1].style.top=document.querySelector('button').getBoundingClientRect().top+"px";
                     newGameIn.disabled=false;
                     newGameIn.innerText="Reset Game"
                 }
